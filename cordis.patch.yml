@@ -1,0 +1,149 @@
+# dsh-plugin-bailian — 阿里云百炼 (DashScope) 全模型接入 bundle
+#
+# 这是本插件的核心：一个 DSH profile bundle patch。
+# 它以「一个 insert」的形式，把百炼的 provider 路由与全部模型目录注入到
+# profile 树中，并顺带把默认模型指向百炼的 DeepSeek V4.1 Flash。
+#
+# 生效位置：被 profile 的 package.json `dsh.profile.bundles` 引用后，
+# 作为一层 patch 叠加在 @deepseek-ai/dsh-base 之上、用户自己的
+# cordis.patch.yml 之下。用户仍可在自己的 patch 里按 id 覆盖任意一行
+# （后写入者胜出），所以本 bundle 不会锁死任何配置。
+#
+# 依赖说明：llm-pi-ai 是 DSH 内置的多provider适配器，随每个 DSH 安装
+# 一起提供，因此本插件零第三方依赖、无需联网安装即可生效。
+
+- insert:
+    # ---------------------------------------------------------------------
+    # 百炼 provider 路由 + 完整模型目录
+    # ---------------------------------------------------------------------
+    - id: llm-pi-ai
+      name: '@deepseek-ai/dsh-llm-pi-ai'
+      config:
+        providers:
+          dashscope:
+            displayName: 阿里云百炼 (DashScope)
+            # 凭据引用：按 launch env → ~/.dsh/.credentials.yaml → .env 的顺序解析。
+            # 安装脚本会把真实密钥写入 .credentials.yaml 的 refs.DASHSCOPE_API_KEY。
+            apiKeyEnv: DASHSCOPE_API_KEY
+            api: openai-completions
+            baseURL: https://dashscope.aliyuncs.com/compatible-mode/v1
+            compat:
+              thinkingFormat: qwen
+              supportsDeveloperRole: false
+              supportsStore: false
+              supportsReasoningEffort: true
+              maxTokensField: max_tokens
+            models:
+              # ---- DeepSeek 系列 ----
+              - id: deepseek-v4-pro
+                name: DeepSeek V4 Pro
+                contextWindow: 1000000
+                maxTokens: 384000
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+              - id: deepseek-v4-pro-0813
+                name: DeepSeek V4 Pro 0813
+                contextWindow: 1000000
+                maxTokens: 384000
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+              - id: deepseek-v4-flash
+                name: DeepSeek V4 Flash
+                contextWindow: 1000000
+                maxTokens: 384000
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+              - id: deepseek-v4.1-flash
+                name: DeepSeek V4.1 Flash
+                contextWindow: 1000000
+                maxTokens: 384000
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+
+              # ---- Qwen 系列 ----
+              - id: qwen3.8-max
+                name: Qwen3.8 Max
+                contextWindow: 1000000
+                maxTokens: 131072
+                reasoningEfforts:
+                  off:
+                  low: low
+                  medium: medium
+                  xhigh: xhigh
+              - id: qwen3.8-max-0902
+                name: Qwen3.8 Max 0902
+                contextWindow: 1000000
+                maxTokens: 131072
+                reasoningEfforts:
+                  off:
+                  low: low
+                  medium: medium
+                  xhigh: xhigh
+              - id: qwen3.7-max
+                name: Qwen3.7 Max
+                contextWindow: 1000000
+                maxTokens: 131072
+              - id: qwen3.7-plus
+                name: Qwen3.7 Plus
+                contextWindow: 1000000
+                maxTokens: 65536
+
+              # ---- GLM 系列 ----
+              - id: glm-5.2
+                name: GLM-5.2
+                contextWindow: 1000000
+                maxTokens: 131072
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+              - id: glm-5.3
+                name: GLM-5.3
+                contextWindow: 1000000
+                maxTokens: 131072
+                reasoningEfforts:
+                  off:
+                  low: low
+                  high: high
+                  max: max
+
+              # ---- Kimi 系列 ----
+              - id: kimi-k2.6
+                name: Kimi K2.6
+                contextWindow: 262144
+                maxTokens: 262144
+              - id: kimi-k3
+                name: Kimi K3
+                contextWindow: 262144
+                maxTokens: 262144
+                reasoningEfforts:
+                  off:
+                  high: high
+                  max: max
+
+              # ---- MiniMax 系列 ----
+              - id: MiniMax-M2.5
+                name: MiniMax M2.5
+                contextWindow: 196608
+                maxTokens: 32768
+              - id: MiniMax/MiniMax-M3
+                name: MiniMax M3
+                contextWindow: 262144
+                maxTokens: 65536
+
+    # ---------------------------------------------------------------------
+    # 默认模型 → 百炼
+    # ---------------------------------------------------------------------
+    - id: agent-default-model
+      name: '@deepseek-ai/dsh-agent-default-model'
+      config:
+        provider: dashscope
+        model: deepseek-v4.1-flash

@@ -1,0 +1,8 @@
+# 密钥绝不入库（README 安全提示同样要求）
+dashscope.key
+*.key
+
+# 安装脚本自动生成的备份目录
+.bailian-backup-*/
+
+node_modules/
