@@ -1,13 +1,24 @@
 {
   "name": "dsh-plugin-bailian",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "private": true,
-  "description": "阿里云百炼 (DashScope) 全模型接入插件 — DeepSeek / Qwen / GLM / Kimi / MiniMax 共 15 个模型",
+  "description": "阿里云百炼 (DashScope) 模型接入插件 — 14 个模型配置，7 个声明支持图片输入",
   "type": "module",
   "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/install.test.mjs"
+  },
   "files": [
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "install.bat",
+    "install.ps1",
+    "write-credential.mjs",
+    "bundle-register.mjs",
+    "LICENSE",
+    "CHANGELOG.md",
+    "TEST-REPORT.txt",
+    "tests/install.test.mjs"
   ],
   "dsh": {
     "bundle": {

@@ -1,0 +1,61 @@
+dsh-plugin-bailian v1.0.3 发行测试报告
+测试日期：2026-10-28（Asia/Shanghai）
+
+结论
+12 项自动化测试通过，0 失败、0 跳过；真实 Harness 配置加载及本地服务启动通过。
+本报告验证安装器和 Harness 集成，不代表 14 个模型均已完成在线推理测试。
+
+环境
+- Windows x64
+- Windows PowerShell 5.1.26100.9711（真实 powershell.exe）
+- 系统 Node 22.22.3
+- DeepSeek Harness 0.2.1-rc.3，自带 Node 24.21.0
+- 所有安装测试使用隔离 DSH_HOME 和假密钥，不修改真实 profile/凭据。
+
+自动化：npm test（测试目录自带，无 npm 依赖）
+1. 模型目录：14 个唯一 ID，7 个图片声明；关键长度参数及 GLM-5.3 禁用 off 回归。
+2. bundle register/validate/unregister：幂等、保留其他字段、错误结构不改写。
+3. 凭据通过 stdin 输入；保留 CRLF、其他 refs 与 records；输出不含完整密钥。
+4. 拒绝换行注入、重复段/重复 key、非映射与不支持的 inline refs，保留原文件。
+5. 确认端到端测试确实运行于 Windows PowerShell 5.1。
+6. 首次安装/旧版升级、从安装目录重复安装、旧文件备份与清理、卸载保留凭据。
+7. 安装及卸载 DryRun 零写入。
+8. Profile 路径穿越、损坏源包、损坏 profile 在写入前拒绝。
+9. 不安全凭据结构失败保护。
+10. 强制注册失败后回滚 package.json、凭据及旧插件文件。
+11. 同 profile 并发安装被拒绝且零写入。
+12. 指定 Harness 自带 Node 实际安装成功。
+
+复现第 12 项前将 BAILIAN_TEST_NODE 指向本机 Harness 的 node.exe，再运行 npm test。
+未设置该变量时，此项明确跳过；不影响其他安装测试。
+
+真实 Harness 集成
+- 使用内置 Web profile 的隔离副本 audit-final；CLI 不直接管理 Electron 专属 desktop profile。
+- 用当前安装器安装 v1.0.3，再运行真实 dsh --profile audit-final --dump-config，退出码 0。
+- 最终合成树：14 模型、7 图片输入；默认 dashscope / deepseek-v4.1-flash。
+- GLM-5.3 不声明 reasoningEfforts，使用服务端默认思考，避免未选档位时发送 false。
+- 实际启动隔离 Web profile，在 127.0.0.1 的系统分配端口成功监听后主动停止；端口已释放。
+- 这证明当前宿主可加载并启动，不证明上游账号权限、推理结果或所有桌面界面交互。
+
+官方资料核对与修正
+- Kimi K2.6：输出配置改为 16,384。
+  https://help.aliyun.com/zh/model-studio/kimi-k2-6
+- Kimi K3：上下文/输出配置改为 1,048,576。
+  https://help.aliyun.com/zh/model-studio/kimi-k3
+- MiniMax M3：上下文 1,048,576，声明图片输入；官方输出上限未列明，保留本包 65,536 配置。
+  https://help.aliyun.com/zh/model-studio/minimax-m3
+- GLM-5.3：仅思考；本版不提供不兼容的关闭思考开关。
+  https://www.alibabacloud.com/help/en/model-studio/glm
+- 地域和端点：本包使用北京端点和对应 Key。
+  https://help.aliyun.com/zh/model-studio/regions
+
+未执行
+- 未使用真实密钥调用百炼模型列表或收费推理接口。
+- 未重新实测逐模型文本、图片、工具调用、推理档位、极限上下文或吞吐。
+- 未测试其他 Harness 版本、国际站端点、macOS/Linux 安装。
+- 网络认证校验分支未做真实 401/403 测试；安装/凭据事务均以离线假值回归。
+
+打包检查
+ZIP 由明确白名单生成，只含源码、安装脚本、说明、MIT 许可证及本报告；测试内密钥全为假值。
+不含真实 .credentials.yaml、dashscope.key、任何安装备份、node_modules、Git 历史。
+SHA-256 见发行版旁的 SHA256SUMS.txt。转发 ZIP 即可，接收者需填写自己的百炼 Key。
