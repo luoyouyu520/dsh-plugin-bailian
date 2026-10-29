@@ -4,5 +4,9 @@ dashscope.key
 
 # 安装脚本自动生成的备份目录
 .bailian-backup-*/
+.bailian-install.lock/
+*.bailian-*.tmp
+.DS_Store
+*.zip
 
 node_modules/

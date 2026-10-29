@@ -2,11 +2,11 @@
   "name": "dsh-plugin-bailian",
   "version": "1.0.3",
   "private": true,
-  "description": "阿里云百炼 (DashScope) 模型接入插件 — 14 个模型配置，7 个声明支持图片输入",
+  "description": "阿里云百炼 (DashScope) Windows / macOS 模型接入插件 — 14 个模型配置，7 个声明支持图片输入",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/install.test.mjs"
+    "test": "node --test tests/install.test.mjs tests/helpers.test.mjs tests/install-macos.test.mjs"
   },
   "files": [
     "cordis.patch.yml",
@@ -18,7 +18,12 @@
     "LICENSE",
     "CHANGELOG.md",
     "TEST-REPORT.txt",
-    "tests/install.test.mjs"
+    "tests/install.test.mjs",
+    "install.sh",
+    "install.command",
+    "README-macos.md",
+    "TEST-REPORT-macos.txt",
+    "tests"
   ],
   "dsh": {
     "bundle": {

@@ -22,9 +22,13 @@ try {
     try { YAML = createRequire(candidate)("yaml"); break; } catch { /* Optional host parser. */ }
   }
 
-  const raw = fs.existsSync(credsPath)
+  let raw = fs.existsSync(credsPath)
     ? fs.readFileSync(credsPath, "utf8").replace(/^\uFEFF/, "")
     : "version: 1\nrefs: {}\nrecords: {}\n";
+  const eol = raw.includes("\r\n") ? "\r\n" : "\n";
+  if (raw.split(/\r\n?|\n/).every((line) => /^\s*(?:#.*)?$/.test(line))) {
+    raw += (raw && !/[\r\n]$/.test(raw) ? eol : "") + ["version: 1", "refs: {}", "records: {}", ""].join(eol);
+  }
   let out;
   if (YAML) {
     const doc = YAML.parseDocument(raw);
@@ -32,20 +36,21 @@ try {
     if (doc.contents.items.some((entry) => !["version", "refs", "records"].includes(String(entry.key)))) {
       throw new Error("unknown top-level key");
     }
+    if (doc.get("version") !== 1) throw new Error("unsupported document version");
     if (!doc.has("refs")) doc.set("refs", doc.createNode({}));
     if (!YAML.isMap(doc.get("refs", true))) throw new Error("refs must be a mapping");
     doc.setIn(["refs", NAME], apiKey);
     out = doc.toString();
     if (YAML.parse(out)?.refs?.[NAME] !== apiKey) throw new Error("credential validation failed");
   } else {
-    // ponytail: preserve common block YAML; require the host YAML parser for complex refs.
-    const eol = raw.includes("\r\n") ? "\r\n" : "\n";
+    // shortcut: preserve common block YAML; require the host YAML parser for complex refs.
     const lines = raw.replace(/\r\n?/g, "\n").split("\n");
     const topKeys = lines.filter((line) => /^[^\s#]/.test(line) && line.trim());
     if (topKeys.some((line) => !/^(version|refs|records):(?:\s|$)/.test(line))) throw new Error("unsupported document");
     for (const key of ["version", "refs", "records"]) {
       if (topKeys.filter((line) => line.startsWith(key + ":")).length > 1) throw new Error("duplicate key");
     }
+    if (!topKeys.some((line) => /^version:[ \t]+1[ \t]*(?:#.*)?$/.test(line))) throw new Error("unsupported document version");
     let start = lines.findIndex((line) => /^refs:/.test(line));
     if (start < 0) { start = lines.length; lines.push("refs:"); }
     if (!/^refs:\s*(?:\{\s*\}\s*)?(?:#.*)?$/.test(lines[start])) throw new Error("complex refs");

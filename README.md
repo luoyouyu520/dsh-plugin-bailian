@@ -1,4 +1,17 @@
-# 阿里云百炼模型插件 · DeepSeek Harness
+# 阿里云百炼模型插件 · DeepSeek Harness（Windows / macOS）
+
+v1.0.3 提供 Windows 和 Mac 安装器，使用相同的 **14 个模型配置**，其中 **7 个声明支持图片输入**。零 npm 运行依赖。
+
+## 快速入口
+
+| 平台 | 安装入口 | 使用说明与测试报告 |
+|---|---|---|
+| Windows | 完整解压后双击 `install.bat` | [下方 Windows 安装说明](#安装与升级) · [Windows 测试报告](TEST-REPORT.txt) |
+| Mac | 完整解压后双击 `install.command`，或终端运行 `./install.sh` | [Mac 安装说明](README-macos.md) · [Mac 测试报告](TEST-REPORT-macos.txt) |
+
+两个版本都由接收者输入自己的百炼 API Key。下文保留 Windows 版使用说明；Mac 的命令、Node 自动发现与 Cmd+Q 重启步骤见 [Mac 安装说明](README-macos.md)。
+
+## Windows 版
 
 Windows 安装包 v1.0.3，基于用户提供的 v1.0.2 更新。提供 DeepSeek / Qwen / GLM / Kimi / MiniMax 的 **14 个模型配置**，其中 **7 个声明支持图片输入**。零 npm 运行依赖。
 
@@ -131,6 +144,6 @@ npm test
 
 直接转发发行版 `dsh-plugin-bailian-v1.0.3.zip` 即可，让对方完整解压、双击安装并输入自己的 Key。ZIP 内含安装脚本、说明、许可证和测试报告。
 
-本项目当前为私有仓库，GitHub Release 链接仅有仓库访问权的人可打开；转发 ZIP 不要求接收方有 GitHub 账号。不改变仓库可见性。
+若仓库设为私有，GitHub Release 链接需要相应访问权限；转发不含 Key 的 ZIP 不要求接收方有 GitHub 账号。
 
 许可证：[MIT](LICENSE)。更新记录见 [CHANGELOG.md](CHANGELOG.md)。

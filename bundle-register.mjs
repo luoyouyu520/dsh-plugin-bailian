@@ -1,16 +1,7 @@
 /**
- * 注册 / 注销 DSH profile bundle —— 由 install.ps1 调用。
+ * 注册 / 注销 DSH profile bundle —— 由安装脚本调用。
  *
- * 为什么单独做成一个文件，而不是 install.ps1 里的 `node -e "..."`：
- * Windows PowerShell 5.1 在把**含双引号**的字符串当参数传给原生 exe 时，
- * 会把内层引号吃掉（它不按 Windows 规则转义），于是 JS 到手时已经坏了：
- *
- *     j.dependencies[name] = "file:./node_modules/" + name;
- *     变成
- *     j.dependencies[name] = file:./node_modules/ + name;   // SyntaxError
- *
- * 结果是「注册 bundle 失败」、bundle 没进 dsh.profile.bundles、模型列表里
- * 看不到百炼。改成独立文件 + 环境变量传参，就完全绕开了引号问题。
+ * 与 Windows 版复用独立脚本，避免 shell 引号差异，并在写入前校验结构。
  *
  * 用法:
  *   PKG_JSON=<profile>/package.json BUNDLE_NAME=dsh-plugin-bailian \
@@ -72,7 +63,9 @@ if (mode === "register") {
 const out = JSON.stringify(json, null, 2) + "\n";
 const tmp = pkgPath + `.bailian-${process.pid}.tmp`;
 try {
-  fs.writeFileSync(tmp, out, { flag: "wx" });
+  const permissions = fs.statSync(pkgPath).mode & 0o777;
+  fs.writeFileSync(tmp, out, { flag: "wx", mode: permissions });
+  fs.chmodSync(tmp, permissions);
   fs.renameSync(tmp, pkgPath);
 } catch (e) {
   try {

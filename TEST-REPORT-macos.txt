@@ -1,0 +1,49 @@
+dsh-plugin-bailian v1.0.3 macOS 测试报告
+测试日期：2026-10-29（Asia/Shanghai）
+上游版本：Windows v1.0.3，commit 11b9d9be15b0967d9aaf54bf217da93c1b1ae7a6
+
+结果
+14 项自动化测试通过，0 失败、0 跳过。
+真实 Harness CLI 离线配置加载、安装、卸载通过。
+模型目录与上游 cordis.patch.yml 一致；此次测试不代表在线模型推理实测。
+
+环境
+- macOS 27.0.1，arm64
+- 系统 /bin/bash 3.2.57
+- Harness 内置 Node v24.21.0
+- DeepSeek Harness 0.2.0-rc.2
+- 系统 PATH 没有 Node，安装器能自动发现应用内的真实 Node 运行时。
+
+复现命令（源码或完整发行包目录，无需 npm 依赖）
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/node/bin/node" --test tests/helpers.test.mjs tests/install-macos.test.mjs
+源码根目录的 npm test 同时发现 Windows 测试；本次在 Mac 上共发现 26 项，18 项通过、8 项 Windows 集成测试按平台跳过，0 失败。
+
+自动化覆盖
+1. 模型目录：14 个唯一 ID，7 个图片输入声明；Kimi 长度与 GLM-5.3 推理配置。
+2. 注册/校验/卸载 helper：幂等、保留其他字段及原文件权限，损坏结构不改写。
+3. 凭据 helper：stdin 输入，CRLF、其他 refs/records 保留，空库及仅注释初始化，600 权限，--check 零写入。
+4. 拒绝密钥换行注入、复杂 fallback refs、重复键、非映射、未知顶层键及不支持的凭据版本。
+5. macOS 自带 Bash 3.2 语法及执行。
+6. 旧版本升级、完整旧插件备份、原安装目录重跑及卸载，保留用户 patch、其他插件和凭据。
+7. 安装与卸载 dry-run 零写入。
+8. 路径穿越、损坏源包/配置、无效密钥在写入前拒绝。
+9. 不支持的凭据安全拒绝；强制注册失败后恢复原 package、凭据、旧插件。
+10. 首次安装失败时清理新凭据及新插件。
+11. 同 profile 并发安装被拒绝，锁和原文件不变。
+12. DSH_NODE 指定内置 Node、DSH_PROFILE=web、key 文件读取。
+13. 辅助进程参数中不含 Key，环境变量优先于文件，安装目录不复制 key 文件。
+14. PATH 无 Node 时自动发现 Harness 内置 Node。
+
+真实 Harness 离线集成
+- 使用临时 DSH_HOME，创建内置 web 派生的 audit profile。
+- 实际 CLI：Contents/Resources/runtime/cli/bin/dsh --profile audit --from-default-profile web --dump-config。
+- 安装后再次 --dump-config：14 个模型、7 个图片输入声明，默认 dashscope / deepseek-v4.1-flash。
+- GLM-5.3 不声明旧 reasoningEfforts/off；用户 cordis.patch.yml 字节不变。
+- 从安装目录卸载成功，假凭据保留；卸载后 dump 与安装前完全一致。
+- 另用 Harness 自带 YAML 解析器验证空文件、仅注释、非空 inline refs、缺版本、版本 2 共 5 个场景。
+
+边界
+所有安装与凭据测试使用临时文件和假 Key，不修改真实 profile 或凭据。
+没有发起真实 Key 的联网认证或收费推理请求；文本、图片、工具调用、推理档位与极限长度需账号实测。
+仅验证上述 arm64 Mac 环境；Intel Mac、其他 Harness 版本未实机验证。
+新 Key 的在线认证可用 --skip-verify 跳过；预览始终不联网。
